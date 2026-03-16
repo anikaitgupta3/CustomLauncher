@@ -57,5 +57,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.accompanist.drawablepainter)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.accompanist.pager.indicators)
 //0.28.0
 }
