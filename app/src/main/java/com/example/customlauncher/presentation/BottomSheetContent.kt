@@ -1,15 +1,13 @@
-package com.example.customlauncher
+package com.example.customlauncher.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,12 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 @Composable
-fun BottomSheetContent(appList: MutableList<AppBlock>,onClick:(String)-> Unit, onAppInfoClick:(String)->Unit){
+fun BottomSheetContent(appList: List<AppBlock>,onClick:(String)-> Unit, onAppInfoClick:(String)->Unit,onAddToFavorite:(AppBlock)-> Unit){
     var text by remember { mutableStateOf("")}
     val filteredList by remember(text, appList) {
         derivedStateOf {
@@ -58,27 +57,38 @@ fun BottomSheetContent(appList: MutableList<AppBlock>,onClick:(String)-> Unit, o
             items(filteredList) { appItem ->
                 BottomSheetItem(
                     appItem, { onClick(appItem.packageName) },
-                    { onAppInfoClick(appItem.packageName) })
+                    { onAppInfoClick(appItem.packageName) },{onAddToFavorite(appItem)})
 
             }
         }
     }
 }
 @Composable
-fun BottomSheetItem(appItem: AppBlock, onClick:()-> Unit,onAppInfoClick:()->Unit){
+fun BottomSheetItem(appItem: AppBlock, onClick:()-> Unit,onAppInfoClick:()->Unit,onAddToFavorite: () -> Unit){
     var expanded by remember { mutableStateOf(false) }
     Box() {
+        val context = LocalContext.current
+        // Dynamically load the icon using the package name stored in DB
+        val icon = remember(appItem.packageName) {
+            try {
+                context.packageManager.getApplicationIcon(appItem.packageName)
+            } catch (e: Exception) {
+                null // Fallback icon here
+            }
+        }
         Row(
             Modifier.combinedClickable(
                 onClick = onClick,
                 onLongClick = { expanded = !expanded }
             )) {
-            Image(
-                painter = rememberDrawablePainter(appItem.icon),
-                contentDescription = appItem.appName,
-                Modifier.size(50.dp),
-                contentScale = ContentScale.Crop
-            )
+            icon?.let {
+                Image(
+                    painter = rememberDrawablePainter(it),
+                    contentDescription = appItem.appName,
+                    Modifier.size(50.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
             Spacer(modifier = Modifier.size(5.dp))
             Text(text = appItem.appName, fontSize = 15.sp)
         }
@@ -93,8 +103,8 @@ fun BottomSheetItem(appItem: AppBlock, onClick:()-> Unit,onAppInfoClick:()->Unit
             )
             HorizontalDivider()
             DropdownMenuItem(
-                text = { Text("Delete app") },
-                onClick = { /* Do something... */ }
+                text = { Text("Add to home screen") },
+                onClick = { onAddToFavorite() }
             )
         }
     }

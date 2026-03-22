@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // ... other plugins like kotlin-android
+    id("com.google.devtools.ksp") // Apply the KSP plugin
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -37,6 +40,12 @@ android {
     buildFeatures {
         compose = true
     }
+    // Modern way to set jvmTarget
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
 }
 
 dependencies {
@@ -48,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,5 +69,16 @@ dependencies {
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.accompanist.pager.indicators)
+    implementation(libs.androidx.datastore.preferences)
+    //val roomVersion = "2.6.1" // Check for the latest stable version on the [Android Developers site](https://developer.android.com/jetpack/androidx/releases/room)
+
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx) // For Kotlin extensions and coroutines support
+    ksp(libs.androidx.room.compiler) // Use KSP for annotation processing
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.gson)
+    implementation(libs.androidx.hilt.navigation.compose)
 //0.28.0
 }

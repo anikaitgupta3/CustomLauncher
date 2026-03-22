@@ -1,15 +1,12 @@
-package com.example.customlauncher
+package com.example.customlauncher.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -22,21 +19,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AppItem(appBlock: AppBlock,onClick:()-> Unit,onAppInfoClick:()->Unit,updateDraggingAppPackage:()->Unit,
-            updateDraggingAppPackageToNull: () -> Unit,disablePagerScroll:()-> Unit,
-            enablePagerScroll:()-> Unit,){
+fun AppItem(appBlock: AppBlock, onClick:()-> Unit, onAppInfoClick:()->Unit, updateDraggingAppPackage:()->Unit,
+            updateDraggingAppPackageToNull: () -> Unit,onRemoveFromFavorite:()-> Unit,flag:Int){
+    //var initialTouchInWindow by remember { mutableStateOf(Offset.Zero) }
     var expanded by remember { mutableStateOf(false) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
     var isDragging by remember { mutableStateOf(false) }
@@ -49,19 +47,17 @@ fun AppItem(appBlock: AppBlock,onClick:()-> Unit,onAppInfoClick:()->Unit,updateD
         // Handle simple Taps (Click to launch)
         detectTapGestures(
             onTap = { onClick() },
-            /*onLongPress = {
-                // This shows the menu if the user just holds and releases
-                expanded = !expanded
-            }*/
         )
     }.pointerInput(Unit){
         detectDragGesturesAfterLongPress(
             onDragStart = { offset ->
-                // 1. Identify which app is being touched
-                // 2. Set draggingAppPackage
+                //val windowOffset = it.boundsInWindow().topLeft
+
+                // 2. initialTouchInWindow is now a "Global" point (e.g., x=500, y=1200)
+                //initialTouchInWindow = windowOffset + offset
                 updateDraggingAppPackage()
                 isDragging=true
-                disablePagerScroll()
+                //disablePagerScroll()
                 expanded=false
 
             },
@@ -69,6 +65,11 @@ fun AppItem(appBlock: AppBlock,onClick:()-> Unit,onAppInfoClick:()->Unit,updateD
                 change.consume()
                 // 3. Update dragOffset += dragAmount
                 dragOffset+=dragAmount
+                // 3. CRITICAL: Calculate where the finger is on the WHOLE screen
+                //val currentFingerPos = initialTouchInWindow + dragOffset
+
+                // 4. Send this to the Parent (MainAppContent) to check for collisions
+                //onDragAction(currentFingerPos)
                 // If they move significantly, ensure menu stays closed
                 if (dragOffset.getDistance() > 10f) {
                     expanded = false
@@ -88,8 +89,9 @@ fun AppItem(appBlock: AppBlock,onClick:()-> Unit,onAppInfoClick:()->Unit,updateD
                     // Here is where the "Drop" logic will go!
                     isDragging = false
                     dragOffset = Offset.Zero
+                    //onDropAction()
                 }
-                enablePagerScroll()
+                //enablePagerScroll()
                 updateDraggingAppPackageToNull()
             },
             onDragCancel = {
@@ -103,20 +105,45 @@ fun AppItem(appBlock: AppBlock,onClick:()-> Unit,onAppInfoClick:()->Unit,updateD
                     isDragging = false
                     dragOffset = Offset.Zero
                 }
-                enablePagerScroll()
+                //enablePagerScroll()
                 updateDraggingAppPackageToNull()
             }
         )
     }) {
-        Column() {
-            Image(
-                painter = rememberDrawablePainter(appBlock.icon),
-                contentDescription = appBlock.appName,
-                Modifier.size(50.dp),
-                contentScale = ContentScale.Crop
-            )
+        val context = LocalContext.current
+        // Dynamically load the icon using the package name stored in DB
+        val icon = remember(appBlock.packageName) {
+            try {
+                context.packageManager.getApplicationIcon(appBlock.packageName)
+            } catch (e: Exception) {
+                null // Fallback icon here
+            }
+        }
+
+        Column {
+            icon?.let {
+                //Column() {
+                Image(
+                    painter = rememberDrawablePainter(it),
+                    contentDescription = appBlock.appName,
+                    Modifier.size(50.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
             Spacer(modifier = Modifier.size(5.dp))
-            Text(text = appBlock.appName, fontSize = 15.sp)
+            //Text(text = appBlock.appName, fontSize = 15.sp)
+            Text(
+                text = appBlock.appName,
+                color = Color.White,
+                fontSize = 14.sp,
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                )
+            )
         }
         DropdownMenu(
             expanded = expanded,
@@ -128,10 +155,12 @@ fun AppItem(appBlock: AppBlock,onClick:()-> Unit,onAppInfoClick:()->Unit,updateD
                     onAppInfoClick() }
             )
             HorizontalDivider()
-            DropdownMenuItem(
-                text = { Text("Delete app") },
-                onClick = { /* Do something... */ }
-            )
+            if(flag==0) {
+                DropdownMenuItem(
+                    text = { Text("Remove from home screen") },
+                    onClick = { onRemoveFromFavorite() }
+                )
+            }
         }
     }
 }
