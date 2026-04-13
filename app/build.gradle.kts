@@ -1,11 +1,21 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     // ... other plugins like kotlin-android
     id("com.google.devtools.ksp") // Apply the KSP plugin
     id("com.google.dagger.hilt.android")
-}
+    kotlin("plugin.serialization") version "2.3.20"
 
+}
+val localProps = Properties()
+val localPropertiesFile = File(rootProject.rootDir,"local.properties")
+if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
+    localPropertiesFile.inputStream().use {
+        localProps.load(it)
+    }
+}
 android {
     namespace = "com.example.customlauncher"
     compileSdk {
@@ -31,6 +41,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "API_KEY", localProps.getProperty("API_KEY"))// IF any
+        }
+        debug {
+            buildConfigField("String", "API_KEY", localProps.getProperty("API_KEY"))// IF any
         }
     }
     compileOptions {
@@ -38,6 +52,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     // Modern way to set jvmTarget
@@ -80,5 +95,16 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.gson)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation ("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
+    // Source: https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
+
+
+
+
 //0.28.0
 }

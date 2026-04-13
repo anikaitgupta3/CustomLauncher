@@ -1,4 +1,4 @@
-package com.example.customlauncher.data
+package com.example.customlauncher.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

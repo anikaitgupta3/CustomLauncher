@@ -2,7 +2,10 @@ package com.example.customlauncher.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,7 +65,8 @@ fun AppList(
     onAppInfoClick: (String) -> Unit,
     onSearch: (String) -> Unit,
     onAddToFavorite:(AppBlock)-> Unit,
-    onRemoveFromFavorite:(AppBlock)-> Unit
+    onRemoveFromFavorite:(AppBlock)-> Unit,
+    onDraggedRight: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     //val scope = rememberCoroutineScope()
@@ -81,7 +85,8 @@ fun AppList(
         { onSearch(it) },
         { draggingAppPackage = it },
         { draggingAppPackage = null },
-        onRemoveFromFavorite
+        onRemoveFromFavorite,
+        onDraggedRight,
         //{ isPagerScrollEnabled = false },
         //{ isPagerScrollEnabled = true },
         //isPagerScrollEnabled,
@@ -187,8 +192,11 @@ fun MainAppContent(
     onSearch: (String) -> Unit,
     updateDraggingAppPackage: (String) -> Unit,
     updateDraggingAppPackageToNull: () -> Unit,
-    onRemoveFromFavorite: (AppBlock) -> Unit
+    onRemoveFromFavorite: (AppBlock) -> Unit,
+    onDraggedRight:()-> Unit
 ) {
+    var offsetX by remember { mutableStateOf(0f) }
+    val threshold = 200f // Threshold in pixels to consider "dragged right"
     Surface(
         modifier = modifier
             .fillMaxSize()
@@ -199,7 +207,21 @@ fun MainAppContent(
                         onSwipeUp()
                     }
                 }
-            },
+            }.draggable(
+                orientation = Orientation.Horizontal,
+                state = rememberDraggableState { delta ->
+                    // Update offset, restricted to rightward only if desired
+                    offsetX += delta
+                },
+                onDragStopped = {
+                    // Action: Check if dragged far enough right
+                    if (offsetX > threshold) {
+                        onDraggedRight()
+                    }
+                    // Optionally snap back or reset
+                    offsetX = 0f
+                }
+            ),
     ) {
         Box(
             modifier = modifier

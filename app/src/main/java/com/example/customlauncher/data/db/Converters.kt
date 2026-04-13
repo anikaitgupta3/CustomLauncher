@@ -1,4 +1,4 @@
-package com.example.customlauncher.data
+package com.example.customlauncher.data.db
 
 import androidx.room.TypeConverter
 import com.example.customlauncher.presentation.AppBlock

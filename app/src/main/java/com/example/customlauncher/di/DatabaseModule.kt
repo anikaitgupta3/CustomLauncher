@@ -1,10 +1,9 @@
 package com.example.customlauncher.di
 
 import android.app.Application
-import android.content.Context
 import androidx.room.Room
-import com.example.customlauncher.data.FavoriteAppsDao
-import com.example.customlauncher.data.FavoriteAppsDatabase
+import com.example.customlauncher.data.db.FavoriteAppsDao
+import com.example.customlauncher.data.db.FavoriteAppsDatabase
 
 import dagger.Module
 import dagger.Provides

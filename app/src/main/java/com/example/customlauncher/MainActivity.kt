@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.customlauncher.presentation.AppBlock
 import com.example.customlauncher.presentation.AppList
 import com.example.customlauncher.presentation.LauncherViewModel
+import com.example.customlauncher.presentation.WeatherScreen
 import com.example.customlauncher.ui.theme.CustomLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -75,20 +76,38 @@ class MainActivity : ComponentActivity() {
                 Scaffold() { innerPadding ->
                     val launcherViewModel: LauncherViewModel = hiltViewModel()
                     val listOfFavoriteApps =launcherViewModel.listOfFavoriteApps.collectAsStateWithLifecycle().value
-                    AppList(appList, listOfFavoriteApps, hotSeatAppList, Modifier.padding(innerPadding), {
-                        this.startActivity(
-                            packageManager.getLaunchIntentForPackage(it)
-                        )
-                    }, {
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        intent.data = "package:$it".toUri()
-                        // Use addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) if calling from a non-Activity context
-                        this.startActivity(intent)
-                    }, {
-                        val intent = Intent(Intent.ACTION_WEB_SEARCH)
-                        intent.putExtra(SearchManager.QUERY, it) // query contains search string
-                        startActivity(intent)
-                    },{launcherViewModel.addFavoriteApp(it)},{launcherViewModel.removeFavoriteApp(it)})
+                    val screenToShow = launcherViewModel.screenToShowFlow.collectAsStateWithLifecycle().value
+                    if(screenToShow==0) {
+                        AppList(
+                            appList,
+                            listOfFavoriteApps,
+                            hotSeatAppList,
+                            Modifier.padding(innerPadding),
+                            {
+                                this.startActivity(
+                                    packageManager.getLaunchIntentForPackage(it)
+                                )
+                            },
+                            {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                intent.data = "package:$it".toUri()
+                                // Use addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) if calling from a non-Activity context
+                                this.startActivity(intent)
+                            },
+                            {
+                                val intent = Intent(Intent.ACTION_WEB_SEARCH)
+                                intent.putExtra(
+                                    SearchManager.QUERY,
+                                    it
+                                ) // query contains search string
+                                startActivity(intent)
+                            },
+                            { launcherViewModel.addFavoriteApp(it) },
+                            { launcherViewModel.removeFavoriteApp(it) },{launcherViewModel.updateScreenToShow(1)})
+                    }
+                    else if(screenToShow==1){
+                        WeatherScreen({launcherViewModel.updateScreenToShow(0)})
+                    }
                 }
             }
         }
