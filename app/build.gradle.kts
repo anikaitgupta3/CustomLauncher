@@ -36,7 +36,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            //isMinifyEnabled = false
+            isMinifyEnabled = true // This enables R8/ProGuard
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -102,6 +104,10 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     // Source: https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor
     implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
+
+    // ADD THIS: Required for Coil 3 to handle URLs/Network images
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
+
 
 
 

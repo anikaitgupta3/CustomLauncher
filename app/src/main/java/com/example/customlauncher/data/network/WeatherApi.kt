@@ -1,8 +1,6 @@
 package com.example.customlauncher.data.network
 
 import com.example.customlauncher.data.network.currentweatherdataresponse.CurrentWeatherResult
-import com.example.customlauncher.data.network.forecaseapiresponse.ForecastResult
-import com.example.customlauncher.data.network.geocodingapiresponse.GeocodingResult
 import com.example.customlauncher.data.network.geocodingapiresponse.GeocodingResultItem
 import retrofit2.Response
 import retrofit2.http.GET

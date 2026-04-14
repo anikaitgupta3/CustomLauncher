@@ -1,5 +1,8 @@
 package com.example.customlauncher.presentation
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -300,7 +303,7 @@ fun DateTimeContainer() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 60.dp),
+            .padding(top = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -383,3 +386,4 @@ fun BottomSection(
         }
     }
 }
+

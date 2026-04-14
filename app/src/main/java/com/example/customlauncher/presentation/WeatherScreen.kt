@@ -1,14 +1,15 @@
 package com.example.customlauncher.presentation
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.customlauncher.isMyLauncherDefault
 
 @Composable
-fun WeatherScreen(onDraggedLeft:()-> Unit){
+fun WeatherScreen(onDraggedLeft: () -> Unit, modifier: Modifier){
     val weatherViewModel: WeatherViewModel = hiltViewModel()
     val weatherUiState = weatherViewModel.uiState.collectAsStateWithLifecycle().value
     val enteredCity = weatherViewModel._enteredCity.collectAsStateWithLifecycle().value
@@ -39,7 +40,7 @@ fun WeatherScreen(onDraggedLeft:()-> Unit){
         }
     }
     if(weatherScreenState == 0) {
-            LocationSearchScreen({ weatherViewModel.onCityEntered(it) }, enteredCity, {
+            LocationSearchScreen(modifier,{ weatherViewModel.onCityEntered(it) }, enteredCity, {
                 if (enteredCity.isEmpty()) {
                     weatherViewModel.updateText("Enter a city")
                 } else {
@@ -62,12 +63,13 @@ fun WeatherScreen(onDraggedLeft:()-> Unit){
                 onDraggedLeft()
                 weatherViewModel.updateWeatherScreenState(0)
                 weatherViewModel.updateUiState(WeatherUiState.Initial)
-            })
+            }, isMyLauncherDefault(LocalContext.current) )
         }
     else if(weatherScreenState == 1){
-        WeatherDetailScreen(enteredCity, (weatherUiState as WeatherUiState.Success).data,{
+        WeatherDetailScreen(modifier,enteredCity, (weatherUiState as WeatherUiState.Success).data,{
             weatherViewModel.updateWeatherScreenState(0)
             weatherViewModel.onCityEntered("")
+            weatherViewModel.updateUiState(WeatherUiState.Initial)
         })
     }
 

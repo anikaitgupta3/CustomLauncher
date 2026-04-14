@@ -1,8 +1,10 @@
 package com.example.customlauncher.data.network.geocodingapiresponse
 
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Keep
 data class GeocodingResultItem(
     //val country: String,
     val lat: Double,

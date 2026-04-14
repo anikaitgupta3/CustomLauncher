@@ -1,8 +1,10 @@
 package com.example.customlauncher.data.network.currentweatherdataresponse
 
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Keep
 data class CurrentWeatherResult(
     //val base: String,
     val clouds: Clouds,

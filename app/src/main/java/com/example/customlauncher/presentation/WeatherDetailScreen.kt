@@ -1,7 +1,10 @@
 package com.example.customlauncher.presentation
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
@@ -26,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -36,27 +39,28 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.customlauncher.R
 import com.example.customlauncher.data.network.RequiredData
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
 fun WeatherDetailScreen(
+    modifier: Modifier,
     cityName: String,
     weatherData: RequiredData,
     onBackClick: () -> Unit
 ) {
     val calendar = Calendar.getInstance()
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
-    val backgroundRes = remember(hour) {
-        if (hour in 6..17) R.drawable.day_bg else R.drawable.night_bg
-    }
+//    val backgroundRes = remember(hour) {
+//        if (hour in 6..17) R.drawable.day_bg else R.drawable.night_bg
+//    }
+    val backgroundRes = R.drawable.day_bg
+
     BackHandler {
         onBackClick()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier =modifier.fillMaxSize().verticalScroll(rememberScrollState(),)) {
         Image(
             painter = painterResource(id = backgroundRes),
             contentDescription = null,
@@ -96,9 +100,13 @@ fun WeatherDetailScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             // Current Weather Icon
+            //Log.d("TAG", "https://openweathermap.org/payload/api/media/file/${weatherData.currentIcon}.png")
             AsyncImage(
-                model = "https://openweathermap.org/payload/api/media/file/${weatherData.currentIcon}.png",
+                model = "https://openweathermap.org/img/wn/${weatherData.currentIcon}@4x.png",
                 contentDescription = null,
+                onError = { error ->
+                    Log.e("WeatherIcon", "Error loading image: ${error.result.throwable}")
+                },
                 modifier = Modifier
                     .size(120.dp)
                     .align(Alignment.CenterHorizontally)
@@ -244,25 +252,24 @@ fun WeatherInfoItem(iconRes: Int, value: String, label: String) {
 //        }
 //    }
 //}
-@Preview
-@Composable
-fun WeatherDetailScreenPreview() {
-    WeatherDetailScreen(
-        cityName = "London",
-        weatherData = RequiredData(
-            currentTemp = 25.0,
-            currentState = "Sunny",
-            currentWindSpeed = 5.0,
-            currentHumidity = 60,
-            currentRain = 10,
-            currentIcon = "01d",
-//            forecastTempMin = listOf(20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 25.0),
-//            forecastTempMax = listOf(25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 30.0),
-//            forecastState = listOf("Sunny", "Cloudy", "Rainy", "Sunny", "Cloudy", "Rainy", "Sunny"),
-//            forecastIcon = listOf("01d", "02d", "03d", "01d", "02d", "03d", "01d")
-        ),
-        onBackClick = {}
-    )
 
-
-}
+//fun WeatherDetailScreenPreview() {
+//    WeatherDetailScreen(
+//        modifier = modifier,
+//        cityName = "London",
+//        weatherData = RequiredData(
+//            currentTemp = 25.0,
+//            currentState = "Sunny",
+//            currentWindSpeed = 5.0,
+//            currentHumidity = 60,
+//            currentRain = 10,
+//            currentIcon = "01d",
+////            forecastTempMin = listOf(20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 25.0),
+////            forecastTempMax = listOf(25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 30.0),
+////            forecastState = listOf("Sunny", "Cloudy", "Rainy", "Sunny", "Cloudy", "Rainy", "Sunny"),
+////            forecastIcon = listOf("01d", "02d", "03d", "01d", "02d", "03d", "01d")
+//        )
+//    ) {}
+//
+//
+//}

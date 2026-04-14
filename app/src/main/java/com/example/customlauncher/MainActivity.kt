@@ -1,8 +1,10 @@
 package com.example.customlauncher
 
 import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Process
 import android.os.UserManager
@@ -12,19 +14,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.customlauncher.presentation.AppBlock
 import com.example.customlauncher.presentation.AppList
 import com.example.customlauncher.presentation.LauncherViewModel
 import com.example.customlauncher.presentation.WeatherScreen
 import com.example.customlauncher.ui.theme.CustomLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -77,6 +86,52 @@ class MainActivity : ComponentActivity() {
                     val launcherViewModel: LauncherViewModel = hiltViewModel()
                     val listOfFavoriteApps =launcherViewModel.listOfFavoriteApps.collectAsStateWithLifecycle().value
                     val screenToShow = launcherViewModel.screenToShowFlow.collectAsStateWithLifecycle().value
+                    val hasSeenDisclosure = launcherViewModel.hasSeenDisclosure.collectAsStateWithLifecycle().value
+                    var showDialog by remember { mutableStateOf(false) }
+                    var showLauncherDialog by remember { mutableStateOf(false) }
+                    var onDismiss by rememberSaveable{mutableStateOf(0)}
+
+                    LaunchedEffect(hasSeenDisclosure) {
+                        if (!hasSeenDisclosure) showDialog = true
+                        else showDialog = false
+                    }
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { /* Don't allow dismiss by tapping outside */ },
+                            title = { Text("Privacy & App Access") },
+                            text = { Text("To work as a launcher, this app needs to see your installed apps to display them on your home screen. We also use your manually entered city to fetch weather data. No data is sent to our servers; it stays on your device.") },
+                            confirmButton = {
+                                Button(onClick = {
+                                     launcherViewModel.onDisclosureAccepted()
+                                    showDialog = false
+                                }) { Text("I Agree") }
+                            }
+                        )
+                    }
+                    if (onDismiss==0 && !isMyLauncherDefault(this)) {
+                        showLauncherDialog = true
+                    }
+
+                    if (showLauncherDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showLauncherDialog = false },
+                            title = { Text("Set as Default Launcher") },
+                            text = { Text("To experience the full features of this app, please set it as your default home screen.") },
+                            confirmButton = {
+                                Button(onClick = {
+                                    showLauncherDialog = false
+                                    val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+                                    startActivity(intent)
+                                }) { Text("Set Default") }
+                            },
+                            dismissButton = {
+                                Button(onClick = { showLauncherDialog = false }) {
+                                    Text("Maybe Later")
+                                    onDismiss=1
+                                }
+                            }
+                        )
+                    }
                     if(screenToShow==0) {
                         AppList(
                             appList,
@@ -106,11 +161,18 @@ class MainActivity : ComponentActivity() {
                             { launcherViewModel.removeFavoriteApp(it) },{launcherViewModel.updateScreenToShow(1)})
                     }
                     else if(screenToShow==1){
-                        WeatherScreen({launcherViewModel.updateScreenToShow(0)})
+                        WeatherScreen({launcherViewModel.updateScreenToShow(0)},Modifier.padding(innerPadding))
                     }
                 }
             }
         }
     }
+}
+fun isMyLauncherDefault(context: Context): Boolean {
+    val intent = Intent(Intent.ACTION_MAIN).apply {
+        addCategory(Intent.CATEGORY_HOME)
+    }
+    val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+    return resolveInfo?.activityInfo?.packageName == context.packageName
 }
 
