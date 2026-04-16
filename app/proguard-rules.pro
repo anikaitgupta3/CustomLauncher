@@ -20,14 +20,11 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 # Retrofit/OkHttp internals
--keepattributes Signature, InnerClasses, AnnotationDefault
+
+
+# Library internals (mandatory)
 -keep class retrofit2.** { *; }
 -keep interface retrofit2.** { *; }
--keep class okhttp3.** { *; }
+-keep class androidx.room.** { *; }
 -dontwarn okhttp3.**
-
-# Room internals
--keep class * extends androidx.room.RoomDatabase
--keep class * extends androidx.room.Entity
--keep class * extends androidx.room.Dao
--keep class androidx.room.paging.** { *; }
+-dontwarn okio.**

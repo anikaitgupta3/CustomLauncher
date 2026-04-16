@@ -17,7 +17,15 @@ if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
     }
 }
 android {
-    namespace = "com.example.customlauncher"
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("C:\\Users\\Admin\\mykeystore.jks")
+            storePassword = "Anikait3#"
+            keyAlias = "key0"
+            keyPassword = "Anikait3#"
+        }
+    }
+    namespace = "com.anikaitgupta.weatherlauncher"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -25,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.customlauncher"
+        applicationId = "com.anikaitgupta.weatherlauncher"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -43,7 +51,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_KEY", localProps.getProperty("API_KEY"))// IF any
+            buildConfigField("String", "API_KEY", localProps.getProperty("API_KEY"))
+            signingConfig = signingConfigs.getByName("debug")// IF any
         }
         debug {
             buildConfigField("String", "API_KEY", localProps.getProperty("API_KEY"))// IF any
